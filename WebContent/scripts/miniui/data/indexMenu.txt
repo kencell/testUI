@@ -1,0 +1,12 @@
+﻿[
+	{ id: "table", text: "表格表单"},
+	{ id: "groupByFL", pid: "table", text: "表格分组-1", iconCls: "icon-add", url: "GroupByFirstLetter.html" },
+	{ id: "groupByAL", pid: "table", text: "表格分组-2", iconCls: "icon-add", url: "GroupByAgeLevel.html" },
+	{ id: "paging", pid: "table", text: "表格数字分页", iconCls: "icon-add", url: "Paging.html" },
+	{ id: "merge", pid: "table", text: "表格单元格合并", iconCls: "icon-add", url: "MergeColumn.html" },
+		
+	{ id: "tree", text: "树形表格"},
+	{ id: "treeList", pid: "tree", text: "树形列表", iconCls: "icon-add", url: "TreeList.html"},
+	{ id: "treeGrid", pid: "tree", text: "树形表格", iconCls: "icon-add", url: "TreeGrid.html"},		
+	{ id: "lazyTree", pid: "tree", text: "懒加载树形表格", iconCls: "icon-add", url: "LazyTree.html"}
+]

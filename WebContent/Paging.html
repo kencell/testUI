@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Paging</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<link href="demo.css" rel="stylesheet" type="text/css" />
+
+<script src="scripts/jquery-1.6.2.min.js" type="text/javascript"></script>
+<script src="scripts/miniui/miniui.js" type="text/javascript"></script>
+<link href="scripts/miniui/themes/default/miniui.css" rel="stylesheet"
+	type="text/css" />
+<link href="scripts/miniui/themes/icons.css" rel="stylesheet"
+	type="text/css" />
+<link href="scripts/pageBar.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>表格综合分页</h1>
+
+	<div id="headPaging" class="pages"></div>
+
+	<div style="width: 900px;">
+		<div class="mini-toolbar" style="border-bottom: 0; padding: 3px;">
+			<table style="width: 100%;">
+				<tr>
+					<td style="width: 100%;"><a class="mini-button"
+						iconCls="icon-add" onclick="add()">增加</a> <a class="mini-button"
+						iconCls="icon-add" onclick="edit()">编辑</a> <a class="mini-button"
+						iconCls="icon-remove" onclick="remove()">删除</a></td>
+					<td style="white-space: nowrap;"><input id="key"
+						class="mini-textbox" emptyText="请输入姓名" style="width: 150px;"
+						onenter="onKeyEnter" /> <a class="mini-button" onclick="search()">查询</a>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div id="datagrid1" class="mini-datagrid"
+		style="width: 900px; height: 326px;" allowResize="true"
+		url="AjaxService.jsp?method=SearchEmployees" idField="sno"
+		multiSelect="true" ondrawgroup="onDrawGroup" allowAlternating="true"
+		showFooter="true">
+		<div property="columns">
+			<div type="checkcolumn"></div>
+
+			<div field="sno" width="100" headerAlign="center">
+				<a onclick="orderby('sno')">学生学号</a>
+			</div>
+			<div field="name" width="100" headerAlign="center">
+				<a onclick="orderby('name')">姓名</a>
+			</div>
+			<div field="age" width="80" headerAlign="center">
+				<a onclick="orderby('age')">年龄</a>
+			</div>
+			<div field="birthday" width="100" renderer="onBirthdayRenderer">
+				<a onclick="orderby('birthday')">出生日期</a>
+			</div>
+			<div field="ids" width="150" headerAlign="center">
+				<a onclick="orderby('ids')">身份证号</a>
+			</div>
+			<div field="mobile" width="150" headerAlign="center">
+				<a onclick="orderby('mobile')">手机号码</a>
+			</div>
+			<div field="homePhone" width="150" headerAlign="center">
+				<a onclick="orderby('homePhone')">家庭电话</a>
+			</div>
+		</div>
+	</div>
+
+	<div id="footPaging" class="pages"></div>
+
+
+
+	<script type="text/javascript">
+		mini.parse();
+
+		var grid = mini.get("datagrid1");
+
+		grid.load();
+		grid.sortBy("sno", "asc");
+		//排序
+		var count = 0;
+		function orderby(field) {
+			count++;
+			if (count % 3 == 1) {
+				grid.sortBy(field, "asc");
+			} else if (count % 3 == 2) {
+				grid.sortBy(field, "desc");
+			} else {
+				grid.sortBy("sno", "asc");
+			}
+		}
+
+		function gotoPage(index, size) {
+			grid.gotoPage(index - 1, size);
+		}
+
+		//添加分页数字
+		grid
+				.on(
+						"load",
+						function(e) {
+							var totalPage = grid.totalPage;//共几页 
+							var totalCount = grid.totalCount;//共多少条记录
+							var pageIndex = grid.pageIndex + 1//当前页
+							var pageSize = grid.pageSize;//每页显示多少条记录
+							var prevPage = pageIndex - 1;
+							var nextPage = pageIndex + 1;
+							var strHtml = '';
+
+							var divfoot = document.getElementById("footPaging");
+							var divhead = document.getElementById("headPaging");
+
+							strHtml += '<span class="count">Pages: '
+									+ pageIndex + ' / ' + totalPage + '</span>';
+							strHtml += '<span class="number">';
+							if (prevPage < 1) {
+								strHtml += '<span title="First Page">«</span>';
+								strHtml += '<span title="Prev Page">‹</span>';
+							} else {
+								strHtml += '<span title="First Page"><a href="#" onclick="gotoPage(1,'
+										+ pageSize + ')">«</a></span>';
+								strHtml += '<span title="Prev Page"><a href="#" onclick="gotoPage('
+										+ prevPage
+										+ ','
+										+ pageSize
+										+ ')">‹</a></span>';
+							}
+							if (pageIndex % 10 == 0) {
+								var startPage = pageIndex - 9;
+							} else {
+								var startPage = pageIndex - pageIndex % 10 + 1;
+							}
+							if (startPage > 10)
+								strHtml += '<span title="Prev 10 Pages"><a href="#" onclick="gotoPage('
+										+ (startPage - 1)
+										+ ','
+										+ pageSize
+										+ ')">...</a></span>';
+							for ( var i = startPage; i < startPage + 10; i++) {
+								if (i > totalPage)
+									break;
+								if (i == pageIndex) {
+									strHtml += '<span title="Page ' + i + '">'
+											+ i + '</span>';
+								} else {
+									strHtml += '<span title="Page ' + i + '"><a href="#" onclick="gotoPage('
+											+ i
+											+ ','
+											+ pageSize
+											+ ')">'
+											+ i
+											+ '</a></span>';
+								}
+							}
+							if (totalPage >= startPage + 10)
+								strHtml += '<span title="Next 10 Pages"><a href="#" onclick="gotoPage('
+										+ (startPage + 10)
+										+ ','
+										+ pageSize
+										+ ')">...</a></span>';
+							if (nextPage > totalPage) {
+								strHtml += '<span title="Next Page">›</span>';
+								strHtml += '<span title="Last Page">»</span>';
+							} else {
+								strHtml += '<span title="Next Page"><a href="#" onclick="gotoPage('
+										+ nextPage
+										+ ','
+										+ pageSize
+										+ ')">›</a></span>';
+								strHtml += '<span title="Last Page"><a href="#"  onclick="gotoPage('
+										+ totalPage
+										+ ','
+										+ pageSize
+										+ ')">»</a></span>';
+							}
+							strHtml += '</span>&nbsp&nbsp';
+
+							if (totalPage < 1) {
+								strHtml += '<select id="toPage" name="toPage" disabled>';
+								strHtml += '<option value="0">No Pages</option>';
+							} else {
+								var chkSelect;
+								strHtml += '共'
+										+ totalPage
+										+ '页,第<select id="toPage" name="toPage" onchange="gotoPage(value,10);">';
+								for ( var i = 1; i <= totalPage; i++) {
+									if (pageIndex == i)
+										chkSelect = ' selected="selected"';
+									else
+										chkSelect = '';
+									strHtml += '<option value="' + i + '"' + chkSelect + '>'
+											+ i + '</option>';
+								}
+							}
+							strHtml += '</select>页&nbsp&nbsp';
+
+							strHtml += '<span class="number">';
+							if (prevPage < 1) {
+								strHtml += '<span title="First Page">第一页</span>';
+								strHtml += '<span title="Prev Page">上一页</span>';
+							} else {
+								strHtml += '<span title="First Page"><a href="#" onclick="gotoPage(1,'
+										+ pageSize + ')">第一页</a></span>';
+								strHtml += '<span title="Prev Page"><a href="#" onclick="gotoPage('
+										+ prevPage
+										+ ','
+										+ pageSize
+										+ ')">上一页</a></span>';
+							}
+							if (nextPage > totalPage) {
+								strHtml += '<span title="Next Page">下一页</span>';
+								strHtml += '<span title="Last Page">最后一页</span>';
+							} else {
+								strHtml += '<span title="Next Page"><a href="#" onclick="gotoPage('
+										+ nextPage
+										+ ','
+										+ pageSize
+										+ ')">下一页</a></span>';
+								strHtml += '<span title="Last Page"><a href="#"  onclick="gotoPage('
+										+ totalPage
+										+ ','
+										+ pageSize
+										+ ')">最后一页</a></span>';
+							}
+							strHtml += '</span>&nbsp&nbsp';
+
+							var startcount = (pageIndex - 1) * pageSize + 1;
+							var endcount = pageIndex * pageSize;
+
+							if (pageIndex == totalPage) {
+								var lastPagecount = totalCount
+										- ((totalPage - 1) * pageSize);
+								var lastEndcount = startcount + lastPagecount
+										- 1;
+
+								strHtml += '总共' + totalCount + '条记录.本页共'
+										+ lastPagecount + '条记录,从第' + startcount
+										+ '条到第' + lastEndcount + '条';
+							} else {
+
+								strHtml += '总共' + totalCount + '条记录.本页共'
+										+ pageSize + '条记录,从第' + startcount
+										+ '条到第' + endcount + '条';
+							}
+
+							divfoot.innerHTML = strHtml;
+							divhead.innerHTML = strHtml;
+
+						});
+
+		//使用"drawcell"事件,自定义单元格样式
+		grid.on("drawcell", function(e) {
+			var record = e.record, //行对象
+			column = e.column, //列对象
+			field = e.field, //单元格值字段?
+			value = e.value;
+
+			//将年龄替换成图片
+			if (column.field == "age") {
+				if (e.value < 30) {
+					e.cellHtml = "<img src='young.png'>&nbsp" + value
+							+ "</img>";
+				} else if (e.value < 50) {
+					e.cellHtml = "<img src='middle.png'>&nbsp" + value
+							+ "</img>";
+				} else {
+					e.cellHtml = "<img src='old.png'>&nbsp" + value + "</img>";
+				}
+			}
+		});
+
+		function add() {
+			mini.open({
+				url : mini_JSPath + "EmployeeWindow.html",
+				title : "新增学生(*为必填项哦)",
+				width : 600,
+				height : 250,
+				onload : function() {
+					var iframe = this.getIFrameEl();
+					var data = {
+						action : "new"
+					};
+					iframe.contentWindow.SetData(data);
+				},
+				ondestroy : function(action) {
+					grid.reload();
+				}
+			});
+		}
+		function edit() {
+
+			var row = grid.getSelected();
+			if (row) {
+				mini.open({
+					url : mini_JSPath + "EmployeeWindow.html",
+					title : "编辑学生(*为必填项哦)",
+					width : 600,
+					height : 250,
+					onload : function() {
+						var iframe = this.getIFrameEl();
+						var data = {
+							action : "edit",
+							sno : row.sno
+						};
+						iframe.contentWindow.SetData(data);
+					},
+					ondestroy : function(action) {
+						grid.reload();
+					}
+				});
+
+			} else {
+				alert("请选中一条记录");
+			}
+
+		}
+		function remove() {
+
+			var rows = grid.getSelecteds();
+			if (rows.length > 0) {
+				if (confirm("确定删除选中记录？")) {
+					var snos = [];
+					for ( var i = 0, l = rows.length; i < l; i++) {
+						var r = rows[i];
+						snos.push(r.sno);
+					}
+					var sno = snos.join(',');
+					grid.loading("操作中，请稍后......");
+					$.ajax({
+						url : "AjaxService.jsp?method=RemoveEmployees&sno="
+								+ sno,
+						success : function(text) {
+							grid.reload();
+						},
+						error : function() {
+						}
+					});
+				}
+			} else {
+				alert("请选中一条记录");
+			}
+		}
+		function search() {
+			var key = mini.get("key").getValue();
+			grid.load({
+				key : key
+			});
+		}
+		function onKeyEnter(e) {
+			search();
+		}
+		function onBirthdayRenderer(e) {
+			var value = e.value;
+			if (value)
+				return mini.formatDate(value, 'yyyy-MM-dd');
+			return "";
+		}
+	</script>
+</body>
+</html>

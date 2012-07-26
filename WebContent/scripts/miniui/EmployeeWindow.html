@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>学生面板</title>
+      <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="../jquery-1.6.2.min.js" type="text/javascript"></script>
+    <script src="./miniui.js" type="text/javascript"></script><link href="./themes/default/miniui.css" rel="stylesheet" type="text/css" />
+    <link href="./themes/icons.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+    html, body
+    {
+        font-size:12px;
+        padding:0;
+        margin:0;
+        border:0;
+        height:100%;
+        overflow:hidden;
+    }
+    </style>
+</head>
+<body>    
+    <form id="form1" method="post">
+<!--         <input name="id" class="mini-hidden" /> -->
+        <div style="padding-left:11px;padding-bottom:5px;">
+            <table>
+                <tr>
+                    <td style="width:70px;">*学生学号：</td>
+                    <td style="width:150px;">    
+                        <input name="sno" class="mini-textbox" vtype="int;maxLength:10" required="true"/>
+                    </td>
+					<td style="width:70px;">*姓名</td>
+                	<td style="width:150px;">    
+<!--                     <input name="name" class="mini-textbox" vtype="maxLength:10" required="true"/> -->
+ 						<input name="name" class="mini-textbox" onvalidation="onNameValidation" vtype="maxLength:10" required="true"/>		
+                	</td>
+                </tr>
+                <tr>
+                    <td >*年龄：</td>
+	                <td >    
+	                    <input name="age" class="mini-spinner" value="25" minValue="1" maxValue="200" required="true"/>
+	                </td>
+	                <td >出生日期：</td>
+	                <td >    
+	                    <input name="birthday" class="mini-datepicker" />
+	                </td>
+                </tr>
+                <tr>
+                    <td >身份证号：</td>
+                    <td >    
+                        <input name="ids" class="mini-textbox"  onvalidation="onIDCardsValidation"/>
+                     </td>
+                    <td >手机号码：</td>
+                    <td >    
+                        <input name="mobile" class="mini-textbox" onvalidation="onMobileValidation"  />
+                    </td>
+                </tr>
+                <tr>
+                    <td >家庭电话：</td>
+                    <td >    
+                        <input name="homePhone" class="mini-textbox" vtype="maxLength:15" />
+                    </td>
+                </tr>    
+            </table>
+        </div>
+        <hr/>
+        
+        <div style="padding-left:11px;padding-bottom:5px;">
+        <input id="ck" name="carryon" class="mini-checkbox" text="继续添加？" trueValue="1" falseValue="0"/>
+        </div>
+          
+        <div style="text-align:center;padding:10px;">
+            <a class="mini-button" onclick="onOk" style="width:60px;margin-right:20px;">确定</a>       
+            <a class="mini-button" onclick="onCancel" style="width:60px;">取消</a>       
+        </div>        
+    </form>
+    <script type="text/javascript">
+        mini.parse();
+
+        var form = new mini.Form("form1");
+
+        function SaveData() {
+            var o = form.getData();   
+			
+            var t = mini.get("ck");
+			var isChecked = t.checked;
+			
+            form.validate();
+            if (form.isValid() == false)  return;
+
+            var json = mini.encode([o]);
+            $.ajax({
+                url: "../../AjaxService.jsp?method=SaveEmployees",
+                data: { students: json },
+                cache: false,
+                success: function (text) {
+                    if (isChecked) {
+						form.clear();
+						alert("添加成功了哦.")
+                    	
+					}else{
+						CloseWindow("save");
+					}
+                	
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert(jqXHR.responseText);
+                    CloseWindow();
+                }
+            });
+        }
+
+        ////////////////////
+        //标准方法接口定义
+        function SetData(data) {
+            if (data.action == "edit") {
+                //跨页面传递的数据对象，克隆后才可以安全使用
+                data = mini.clone(data);
+
+                $.ajax({
+                    url: "../../AjaxService.jsp?method=GetEmployee&sno=" + data.sno,
+                    cache: false,
+                    success: function (text) {
+                        var o = mini.decode(text);
+                        form.setData(o);
+//                         onDeptChanged();
+//                         mini.getbyName("position").setValue(o.position);
+                    }
+                });
+            }
+        }
+
+        function GetData() {
+            var o = form.getData();
+            return o;
+        }
+        function CloseWindow(action) {
+            if (window.CloseOwnerWindow) window.CloseOwnerWindow(action);
+            else window.close();
+        
+        }
+        function onOk(e) {
+            SaveData();
+        }
+        function onCancel(e) {
+            CloseWindow("cancel");
+        }
+        //////////////////////////////////////
+        //身份证验证规则
+        function onIDCardsValidation(e) {
+        	if(e.value=="" || e.value==null){ return;}
+        	if (e.isValid) {
+                var pattern = /\d*/;
+                if (e.value.length < 15 || e.value.length > 18 || pattern.test(e.value) == false) {
+                    e.errorText = "必须输入15~18位数字";
+                    e.isValid = false;
+                }
+            }
+      }
+        
+        //手机号验证规则
+        function onMobileValidation(e) {
+        	if(e.value=="" || e.value==null){ return;}
+        	if (e.isValid) {
+                var pattern = /\d*/;
+                if (e.value.length != 11  || pattern.test(e.value) == false) {
+                    e.errorText = "手机号必须输入11位数字";
+                    e.isValid = false;
+                }
+            }
+      }
+        
+        //姓名验证规则
+        function onNameValidation(e) {
+            if (e.isValid) {
+            	if (isChinese(e.value.substr(0,1)) ==false && isEnglish(e.value.substr(0,1))==false ) {
+	            		e.errorText = "姓名的首字母必须为英文或中文哦";
+	                  	e.isValid = false;
+				}
+            }
+      }
+        
+        /* 是否英文 */
+        function isEnglish(v) {
+            var re = new RegExp("^[a-zA-Z\_]+$");
+            if (re.test(v)) return true;
+            return false;
+        }
+        /* 是否汉字 */
+        function isChinese(v) {
+            var re = new RegExp("^[\u4e00-\u9fa5]+$");
+            if (re.test(v)) return true;
+            return false;
+        }
+        //////////////////////////////////
+//         function onDeptChanged(e) {
+//             var deptCombo = mini.getbyName("dept_id");
+//             var positionCombo = mini.getbyName("position");
+//             var dept_id = deptCombo.getValue();
+
+//             positionCombo.load("../data/AjaxService.jsp?method=GetPositionsByDepartmenId&id=" + dept_id);
+//             positionCombo.setValue("");
+//         }
+
+
+
+    </script>
+</body>
+</html>
